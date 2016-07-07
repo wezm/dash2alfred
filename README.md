@@ -11,5 +11,5 @@ to your Dash snippets. You can copy this from Dash by opening the
 preferences, switching to the Snippets tab and then copying the
 "Snippet Library Location".
 
-Double click the generated `.alfredsnippets` file to import then into
+Double click the generated `.alfredsnippets` file to import them into
 Alfred.
