@@ -1,0 +1,53 @@
+#!/usr/bin/ruby
+
+require 'pathname'
+require 'securerandom'
+require 'shellwords'
+require 'json'
+require 'tempfile'
+
+def usage
+  $stderr.puts "Usage dash2alfred path/to/dash_snippets output.alfredsnippets"
+  $stderr.puts "\nExample using default Dash snippets location:"
+  $stderr.puts "E.g. dash2alfred ls ~/Library/Application\ Support/Dash/Dash\ Snippets.dash ~/Dash\ Snippets.alfredsnippets"
+  exit 2
+end
+
+usage if ARGV.size < 2
+
+dash_snippets_path = Pathname(ARGV[0])
+alfred_snippets_path = ARGV[1]
+
+unless dash_snippets_path.exist?
+  $stderr.puts "#{dash_snippets_path} does not exist"
+  exit 3
+end
+
+# sqlite isn't part of the Ruby standard library so we'll shell out to the
+# sqlite3 command instead, which is installed by default on OS X
+# Columns are: sid|title|body|syntax|usageCount
+sql = "SELECT * FROM snippets"
+raw_snippets = `sqlite3 -ascii #{dash_snippets_path.to_s.shellescape} #{sql.shellescape}`
+
+Dir.mktmpdir do |tmpdir_path|
+  tmpdir = Pathname(tmpdir_path)
+
+  raw_snippets.split("\x1E").each do |row|
+    _, title, body, _, _ = row.split("\x1F")
+
+    uuid = SecureRandom.uuid
+    snippet = {
+      "snippet" => body,
+      "uid" => uuid,
+      "name" => title,
+      "keyword" => title
+    }
+
+    tmpdir.join("#{uuid}.json").open('w') do |f|
+      f.write({"AlfredSnippet" => snippet}.to_json)
+    end
+  end
+
+  # Zip up all the JSON files into a alfredsnippets file
+  system("zip --quiet --junk-paths #{alfred_snippets_path.shellescape} #{File.join(tmpdir_path.shellescape, '*.json')}")
+end
