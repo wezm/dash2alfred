@@ -24,3 +24,7 @@ Alfred.
 ### Usage
 
     find ../Alfred\ Snippets -name \*.alfredsnippets -exec ./alfred2xpander '{}' \;
+
+[Dash]: https://kapeli.com/dash
+[Alfred]: https://www.alfredapp.com/
+[Xpander]: https://github.com/OzymandiasTheGreat/Xpander
