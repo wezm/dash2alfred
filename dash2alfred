@@ -9,7 +9,7 @@ require 'tempfile'
 def usage
   $stderr.puts "Usage dash2alfred path/to/dash_snippets output.alfredsnippets"
   $stderr.puts "\nExample using default Dash snippets location:"
-  $stderr.puts "E.g. dash2alfred ls ~/Library/Application\ Support/Dash/Dash\ Snippets.dash ~/Dash\ Snippets.alfredsnippets"
+  $stderr.puts "E.g. dash2alfred ~/Library/Application\ Support/Dash/Dash\ Snippets.dash ~/Dash\ Snippets.alfredsnippets"
   exit 2
 end
 

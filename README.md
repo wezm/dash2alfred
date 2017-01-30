@@ -1,8 +1,13 @@
-# dash2alfred
+# Snippet Tools
 
-Convert Dash snippets into Alfred 3 snippets.
+Tools for converting between snippet formats:
 
-## Usage
+- Convert [Dash] snippets into [Alfred] 3 snippets (`dash2alfred`)
+- Convert [Alfred] snippets to [Xpander] snippets (`alfred2xpander`)
+
+## dash2alfred
+
+### Usage
 
     ./dash2alfred ~/Dropbox\ \(Personal\)/Dash\ Snippets.dash Dash\ Snippets.alfredsnippets
 
@@ -13,3 +18,9 @@ preferences, switching to the Snippets tab and then copying the
 
 Double click the generated `.alfredsnippets` file to import them into
 Alfred.
+
+## alfred2xpander
+
+### Usage
+
+    find ../Alfred\ Snippets -name \*.alfredsnippets -exec ./alfred2xpander '{}' \;

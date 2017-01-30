@@ -1,0 +1,80 @@
+#!/usr/bin/env ruby
+
+require 'shellwords'
+require 'json'
+require 'tempfile'
+
+def usage
+  $stderr.puts "Usage alfred2xpander path/to/Some.alfredsnippets [path/to/output/dir]"
+  $stderr.puts "\nExample using default Xpander location (~/.phrases):"
+  $stderr.puts "E.g. alfred2xpander Snippets.alfredsnippets"
+  exit 2
+end
+
+usage if ARGV.size < 1
+
+alfred_snippets_path = File.expand_path(ARGV[0])
+xpander_snippets_path = File.expand_path(ARGV[1] || '~/.phrases')
+
+unless File.exist?(alfred_snippets_path)
+  $stderr.puts "#{alfred_snippets_path} does not exist"
+  exit 3
+end
+
+unless File.exist?(xpander_snippets_path)
+  $stderr.puts "#{xpander_snippets_path} does not exist"
+  exit 3
+end
+
+unless system('which unzip 2>&1 > /dev/null')
+  $stderr.puts "`unzip` not found on your system"
+  exit 4
+end
+
+# Unzip the alfred snippets to a tempdir
+puts alfred_snippets_path
+Dir.mktmpdir do |tmpdir_path|
+  # tmpdir = Pathname(tmpdir_path)
+  # Zip support isn't in the ruby standard library so shell out to unzip
+  system('unzip', '-q', '-d', tmpdir_path, alfred_snippets_path)
+  # system('ls', '-l', tmpdir_path)
+
+  folder_name = File.basename(alfred_snippets_path, '.alfredsnippets')
+  xpander_folder_path = File.join(
+    xpander_snippets_path,
+    folder_name
+  )
+
+  # Ensure distination directory exists
+  Dir.mkdir(xpander_folder_path) unless Dir.exist?(xpander_folder_path)
+
+  # For each json file generate an Xpander JSON object
+  Dir.glob(File.join(tmpdir_path, '*.json')).each do |alfred_json_path|
+    alfred_snippet = JSON.parse(File.read(alfred_json_path))['alfredsnippet']
+
+    # puts alfred_snippet.to_json
+    xpander_snippet_name = alfred_snippet['name'] + '.json'
+    xpander_snippet = {
+      "body" => alfred_snippet['snippet'],
+      "hotkey" => nil,
+      "hotstring" => alfred_snippet['keyword'],
+      "name" => xpander_snippet_name,
+      "path" => folder_name,
+      "script" => false,
+      "send" => [
+        1,
+        0
+      ],
+      "timestamp" => File.mtime(alfred_json_path).to_i,
+      "trigger" => 0,
+      "uuid" => alfred_snippet['uid'],
+      "window_class" => nil,
+      "window_title" => nil
+    }
+
+    # Write out the new Xpander file
+    File.open(File.join(xpander_folder_path, xpander_snippet_name.gsub('/', '-')), 'w') do |f|
+      f.write(JSON.generate(xpander_snippet))
+    end
+  end
+end
